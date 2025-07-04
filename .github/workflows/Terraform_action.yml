@@ -4,46 +4,39 @@ on:
   workflow_dispatch:
     inputs:
       resource_group_name:
-        description: "Enter the Azure Resource Group name you want to create"
+        description: "Azure Resource Group name"
         required: true
         type: string
+        
 permissions: 
   id-token: write
-  contents: read
-  
+  contents: read        
+
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Login to Azure
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Set Azure Subscription
-      run: az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
       run: terraform init
-      working-directory: ./Terraform
-      env:
-        ARM_USE_AZURECLI: true      
+      working-directory: ./terraform
 
     - name: Terraform Plan
-      run: terraform plan -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
-      working-directory: ./Terraform
-      env:
-        ARM_USE_AZURECLI: true        
+      run: terraform plan -var="resource_group_name=${{ github.event.inputs.resource_group_name }}"
+      working-directory: ./terraform
+
     - name: Terraform Apply
-      run: terraform apply -auto-approve -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
-      working-directory: ./Terraform
-      env:
-        ARM_USE_AZURECLI: true        
+      run: terraform apply -auto-approve -var="resource_group_name=${{ github.event.inputs.resource_group_name }}"
+      working-directory: ./terraform
