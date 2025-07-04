@@ -1,0 +1,41 @@
+name: Deploy Terraform to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group_name:
+        description: "Enter the Azure Resource Group name you want to create"
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./Terraform
+
+    - name: Terraform Plan
+      run: terraform plan -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
+      working-directory: ./Terraform
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
+      working-directory: ./Terraform
+
+        
