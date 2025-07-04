@@ -34,13 +34,16 @@ jobs:
     - name: Terraform Init
       run: terraform init
       working-directory: ./Terraform
+      env:
+        ARM_USE_AZURECLI: true      
 
     - name: Terraform Plan
       run: terraform plan -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
       working-directory: ./Terraform
-
+      env:
+        ARM_USE_AZURECLI: true        
     - name: Terraform Apply
       run: terraform apply -auto-approve -var "resource_group_name=${{ github.event.inputs.resource_group_name }}"
       working-directory: ./Terraform
-
-        
+      env:
+        ARM_USE_AZURECLI: true        
